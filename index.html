@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Chat</title>
+    <!-- استدعاء خطوط وأيقونات عصرية -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+        body {
+            background-color: #0e0e0e;
+            color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        @media (min-width: 480px) {
+            .app-container {
+                height: 90vh;
+                border-radius: 20px;
+                border: 1px solid #262626;
+            }
+        }
+        /* شاشات تسجيل الدخول والحماية */
+        .modal-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+        }
+        .modal-screen i.lock-icon {
+            font-size: 40px;
+            color: #0095f6;
+            margin-bottom: 15px;
+        }
+        .modal-screen h2 {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #e4e4e4;
+            font-size: 20px;
+        }
+        .modal-screen p {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        .modal-screen input {
+            width: 85%;
+            padding: 12px 15px;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .modal-screen button {
+            width: 85%;
+            padding: 12px;
+            background: #0095f6;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .error-msg {
+            color: #ff3b30;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        /* الهيدر (شبه انستا/واتس) */
+        .chat-header {
+            padding: 12px 15px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #262626;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #252525;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #0095f6;
+            font-size: 18px;
+        }
+        .username-display {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .status-text {
+            font-size: 12px;
+            color: #2ea44f;
+        }
+        .header-icons {
+            display: flex;
+            gap: 20px;
+            color: #f1f1f1;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        /* صندوق الرسائل */
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #000;
+        }
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            position: relative;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        .message.sent {
+            background: #0084ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message.received {
+            background: #262626;
+            color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        .message audio {
+            max-width: 200px;
+            height: 35px;
+            margin-top: 5px;
+        }
+        .msg-time {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: left;
+        }
+        /* شريط الكتابة وإرسال الوسائط */
+        .chat-input-area {
+            padding: 10px 15px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #262626;
+        }
+        .chat-input-area input[type="text"] {
+            flex: 1;
+            background: #121212;
+            border: 1px solid #333;
+            border-radius: 22px;
+            padding: 10px 15px;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #a8a8a8;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .action-btn:hover {
+            color: #fff;
+        }
+        .send-btn {
+            background: #0095f6;
+            color: white;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .recording {
+            color: #ff3b30 !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- شاشة الحماية بالرمز السري -->
+        <div id="passcode-screen" class="modal-screen">
+            <i class="fa-solid fa-lock lock-icon"></i>
+            <h2>محادثة خاصة ومحميّة</h2>
+            <p>أدخل رمز المرور للوصول إلى المحادثة</p>
+            <div id="pass-error" class="error-msg">رمز المرور غير صحيح!</div>
+            <input type="password" id="passcode-input" placeholder="رمز المرور..." onkeypress="handlePasskey(event)">
+            <button onclick="verifyPasscode()">دخول</button>
+        </div>
+
+        <!-- شاشة اختيار الاسم -->
+        <div id="login-screen" class="modal-screen" style="display: none;">
+            <i class="fa-solid fa-user-check lock-icon"></i>
+            <h2>تحديد هوية المستخدم</h2>
+            <p>ادخل اسمك لتمييز رسائلك في الشات</p>
+            <input type="text" id="name-input" placeholder="اكتب اسمك هنا..." onkeypress="handleNameKey(event)">
+            <button onclick="startChat()">بدء المحادثة</button>
+        </div>
+
+        <!-- الهيدر -->
+        <div class="chat-header">
+            <div class="user-info">
+                <div class="avatar" id="header-avatar">🔒</div>
+                <div>
+                    <div class="username-display" id="chat-title">المحادثة الخاصة</div>
+                    <div class="status-text">نشط الآن</div>
+                </div>
+            </div>
+            <div class="header-icons">
+                <i class="fa-solid fa-shield-halved" title="محمي برمز مرور" onclick="alert('الشات مشفر ومحمي برمز المرور AS16')"></i>
+            </div>
+        </div>
+
+        <!-- صندوق الرسائل -->
+        <div class="chat-messages" id="message-container">
+            <!-- الرسائل بتظهر هنا -->
+        </div>
+
+        <!-- صندوق الإدخال (ميكس انستا وواتس) -->
+        <div class="chat-input-area">
+            <!-- زر رفع الصور -->
+            <label class="action-btn">
+                <i class="fa-regular fa-image"></i>
+                <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="sendImage(event)">
+            </label>
+            
+            <!-- زر الريكورد الصوتي -->
+            <button class="action-btn" id="record-btn" onclick="toggleRecord()"><i class="fa-solid fa-microphone"></i></button>
+
+            <!-- حقل النص -->
+            <input type="text" id="message-input" placeholder="اكتب رسالة..." onkeypress="handleKeyPress(event)">
+
+            <!-- زر الإرسال -->
+            <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        const SECRET_PASSCODE = "AS16";
+        let currentUser = "";
+
+        function handlePasskey(e) {
+            if(e.key === 'Enter') verifyPasscode();
+        }
+
+        function handleNameKey(e) {
+            if(e.key === 'Enter') startChat();
+        }
+
+        function verifyPasscode() {
+            const passInput = document.getElementById("passcode-input").value;
+            const errorMsg = document.getElementById("pass-error");
+            
+            if (passInput === SECRET_PASSCODE) {
+                document.getElementById("passcode-screen").style.display = "none";
+                document.getElementById("login-screen").style.display = "flex";
+                errorMsg.style.display = "none";
+            } else {
+                errorMsg.style.display = "block";
+                document.getElementById("passcode-input").value = "";
+            }
+        }
+        
+        function startChat() {
+            const nameInput = document.getElementById("name-input").value.trim();
+            if(!nameInput) {
+                alert("من فضلك اكتب اسمك الأول");
+                return;
+            }
+            currentUser = nameInput;
+            document.getElementById("login-screen").style.display = "none";
+            loadMessages();
+            setInterval(loadMessages, 1500);
+        }
+
+        function handleKeyPress(e) {
+            if(e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function getStoredMessages() {
+            try {
+                return JSON.parse(localStorage.getItem("private_chat_msgs")) || [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function saveMessage(msgObj) {
+            let msgs = getStoredMessages();
+            msgs.push(msgObj);
+            localStorage.setItem("private_chat_msgs", JSON.stringify(msgs));
+            loadMessages();
+        }
+
+        function loadMessages() {
+            const container = document.getElementById("message-container");
+            const msgs = getStoredMessages();
+            
+            const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+
+            container.innerHTML = "";
+            msgs.forEach(m => {
+                const div = document.createElement("div");
+                div.className = `message ${m.sender === currentUser ? 'sent' : 'received'}`;
+                
+                let contentHTML = `<div>${m.text || ''}</div>`;
+                if(m.type === 'image') {
+                    contentHTML = `<img src="${m.content}" alt="image">`;
+                } else if(m.type === 'audio') {
+                    contentHTML = `<audio controls src="${m.content}"></audio>`;
+                }
+
+                div.innerHTML = `
+                    <div style="font-size: 11px; opacity: 0.8; margin-bottom: 2px;">${m.sender}</div>
+                    ${contentHTML}
+                    <div class="msg-time">${m.time}</div>
+                `;
+                container.appendChild(div);
+            });
+
+            if(isScrolledToBottom || msgs.length <= 5) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("message-input");
+            const text = input.value.trim();
+            if(!text) return;
+
+            const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            saveMessage({
+                sender: currentUser,
+                type: 'text',
+                text: text,
+                time: timeNow
+            });
+            input.value = "";
+        }
+
+        function sendImage(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                saveMessage({
+                    sender: currentUser,
+                    type: 'image',
+                    content: e.target.result,
+                    time: timeNow
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleRecord() {
+            const btn = document.getElementById("record-btn");
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        saveMessage({
+                            sender: currentUser,
+                            type: 'audio',
+                            content: audioUrl,
+                            time: timeNow
+                        });
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add("recording");
+                } catch (err) {
+                    alert("المتصفح لا يدعم تسجيل الصوت أو لم يتم منح الصلاحية.");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.classList.remove("recording");
+            }
+        }
+    </script>
+</body>
+</html>
